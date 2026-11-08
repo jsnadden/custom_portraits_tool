@@ -29,7 +29,7 @@ export function makeInitialCrop(source: ImageSize, output: ImageSize) : CropRect
 	return { x,y,w,h };
 };
 
-export function zoomCrop(source: ImageSize, crop: CropRectangle, scaleFactor: number, minScaleFactor : number, centre_UV: Point) : CropRectangle {
+export function scaleCrop(source: ImageSize, crop: CropRectangle, scaleFactor: number, minScaleFactor : number, centre_UV: Point) : CropRectangle {
 	if (!Number.isFinite(scaleFactor) || scaleFactor <= 0) {
 		throw new RangeError("scaleFactor must have a finite, positive numerical value");
 	}
@@ -62,4 +62,8 @@ export function zoomCrop(source: ImageSize, crop: CropRectangle, scaleFactor: nu
 
 	return newCrop;
 };
+
+export function translateCrop() {
+
+}
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { type Crops, cropFormats, initialiseCrops } from "./cropFormats.ts";
+import { type Crops, cropFormats, initialiseCrops, type CropFormatLabel } from "./cropFormats.ts";
 import { type CropRectangle, type ImageSize } from "./geometry.ts";
 import { CropPreview } from "./CropPreview.tsx";
 
@@ -7,7 +7,6 @@ const maxPreviewScale = 0.7;
 const previewGap = 24;
 
 function App() {
-	const [sourceFile, setSourceFile] = useState<File | null>(null);
 	const [sourceUrl, setSourceUrl] = useState<string | null>(null);
 	const [sourceSize, setSourceSize] = useState<ImageSize | null>(null);
 	const [crops, setCrops] = useState<Crops | null>(null);
@@ -33,7 +32,6 @@ function App() {
 					onChange={(event) => {
 						const file = event.currentTarget.files?.[0];
 						if (file) {
-							setSourceFile(file);
 							setSourceUrl(URL.createObjectURL(file));
 							setSourceSize(null);
 							setCrops(null);
@@ -49,7 +47,7 @@ function App() {
 					gap: previewGap,
 				}}
 			>
-				{Object.entries(cropFormats).map(([label, format]) => {
+				{(Object.keys(cropFormats) as CropFormatLabel[]).map((label) => {
 					const currentCrop = crops === null
 						? null
 						: crops[label];
@@ -60,7 +58,7 @@ function App() {
 							sourceUrl={sourceUrl}
 							sourceSize={sourceSize}
 							currentCrop={currentCrop}
-							updateCrop={(transform : () => CropRectangle) => {
+							updateCrop={(transform : (crop : CropRectangle) => CropRectangle) => {
 								setCrops((previous) => {
 									return (previous === null)
 									? previous

@@ -1,10 +1,11 @@
+import { useEffect, useRef, useState } from "react";
 import { type CropFormatLabel, cropFormats } from "./cropFormats";
 import { type Point, type ImageSize, type CropRectangle, makeInitialCrop, zoomCrop } from "./geometry";
 
-export type UpdateCropCallback = (transform: (previous : CropRectangle) => CropRectangle) => void;
-export type UpdateSourceSizeCallback = (size : ImageSize) => void;
+type UpdateCropCallback = (transform: (previous : CropRectangle) => CropRectangle) => void;
+type UpdateSourceSizeCallback = (size : ImageSize) => void;
 
-export type CropPreviewProps = {
+type CropPreviewProps = {
 	label : CropFormatLabel,
 	sourceUrl : string | null,
 	sourceSize : ImageSize | null
@@ -13,12 +14,69 @@ export type CropPreviewProps = {
 	onImageLoaded : UpdateSourceSizeCallback,
 };
 
+type DragCropRef = {
+	pointerID : number,
+	startingPosition : Point,
+	startingCrop : CropRectangle,
+};
+
 export function CropPreview(props : CropPreviewProps) {
 	const format = cropFormats[props.label];
 
+	const frameRef = useRef<HTMLDivElement | null>(null);
+	const dragRef = useRef<DragCropRef | null>(null);
+
+	useEffect(() => {
+		const element = frameRef.current;
+
+		if (element === null) {
+			return;
+		}
+
+		function wheelHandler(event : WheelEvent) {
+			if (props.currentCrop === null) {
+				return;
+			}
+
+			if (element === null) {
+				return;
+			}
+
+			event.preventDefault();
+
+			const borderBox = element.getBoundingClientRect();
+
+			const cursor_UV : Point = {
+				x: (event.clientX - element.clientLeft - borderBox.left) / element.clientWidth,
+				y: (event.clientY - element.clientTop - borderBox.top) / element.clientHeight
+			}
+
+			const zoomSensitivity = 0.0007;
+			const scaleFactor : number = Math.exp(zoomSensitivity * event.deltaY);
+
+			props.updateCrop(previous => {
+				if (props.sourceSize === null) {
+					return previous;
+				}
+
+				const initialCrop = makeInitialCrop(props.sourceSize, format.dims);
+				const minDimension = Math.min(100, initialCrop.w, initialCrop.h);
+				const minScaleFactor = Math.max(minDimension / previous.w, minDimension / previous.h);
+
+				return scaleCrop(props.sourceSize, previous, scaleFactor, minScaleFactor, cursor_UV);
+			});			
+		};
+
+		element.addEventListener("wheel", wheelHandler, { passive: false });
+
+		return () => {
+			element.removeEventListener("wheel", wheelHandler);
+		};
+
+	}, [props, format.dims]);
+
 	return(
 		<section
-			key={props.label}
 			className="crop-preview"
 			style={{
 				gridArea: props.label,
@@ -29,38 +87,44 @@ export function CropPreview(props : CropPreviewProps) {
 		>
 			<div
 				className="crop-frame"
+				ref={frameRef}
 				style={{ aspectRatio: `${format.dims.w} / ${format.dims.h}` }}
-				onWheel={(event) => {
-					if (props.currentCrop === null) { return; }
-
-					const element = event.currentTarget;
-					const borderBox = element.getBoundingClientRect();
-
-					const cursor_UV : Point = {
-						x: (event.clientX - element.clientLeft - borderBox.left) / element.clientWidth,
-						y: (event.clientY - element.clientTop - borderBox.top) / element.clientHeight
+				onPointerDown={(event) => {
+					if (props.currentCrop === null) {
+						return;
 					}
 
-					const zoomSensitivity = 0.0007;
-					const scaleFactor : number = Math.exp(zoomSensitivity * event.deltaY);
+					event.currentTarget.setPointerCapture(event.pointerId);
+					event.preventDefault();
 
-					props.updateCrop(previous => {
-						if (props.sourceSize === null) {
-							return previous;
-						}
+					dragRef.current = {
+						pointerID: event.pointerId,
+						startingPosition: { x: event.clientX, y: event.clientY },
+						startingCrop: props.currentCrop,
+					};
+				}}
+				onPointerMove={(event) => {
+					if (dragRef.current === null) {
+						return;
+					}
 
-						const initialCrop = makeInitialCrop(props.sourceSize, format.dims);
-						const minDimension = Math.min(100, initialCrop.w, initialCrop.h);
-						const minScaleFactor = Math.max(minDimension / previous.w, minDimension / previous.h);
 
-						return zoomCrop(props.sourceSize, previous, scaleFactor, minScaleFactor, cursor_UV);
-					});
+				}}
+				onPointerCancel={(event) => {
+					dragRef.current = null;
+				}}
+				onPointerUp={(event) => {
+					dragRef.current = null;
+				}}
+				onLostPointerCapture={(event) => {
+					dragRef.current = null;
 				}}
 			>
 				{props.sourceUrl !== null && (
 					<img
 						src={props.sourceUrl}
 						alt={`${format.displayName} preview`}
+						draggable={false}
 						style={
 							props.currentCrop !== null && props.sourceSize !== null
 								? {
@@ -89,13 +153,13 @@ export function CropPreview(props : CropPreviewProps) {
 				)}
 			</div>
 
-			<p>
-				{
-					props.currentCrop !== null
-						? `x: ${props.currentCrop.x.toFixed(1)}, y: ${props.currentCrop.y.toFixed(1)}, w: ${props.currentCrop.w.toFixed(1)}, h: ${props.currentCrop.h.toFixed(1)}`
-						: "No image loaded"
-				}
-			</p>
+			{/* <p> */}
+			{/* 	{ */}
+			{/* 		dragRef.current !== null */}
+			{/* 			? `dx=${dragRef.current.dx.toFixed(1)}` */}
+			{/* 			: "No drag captured" */}
+			{/* 	} */}
+			{/* </p> */}
 		</section>
 	);
 }
