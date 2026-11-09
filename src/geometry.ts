@@ -53,7 +53,7 @@ export function scaleCrop(source: ImageSize, crop: CropRectangle, scaleFactor: n
 	// handle possible rounding errors
 	const epsilon = 16 * Number.EPSILON * Math.max(1, source.w, source.h);
 	if (source.w - newCrop.w <= -epsilon || source.h - newCrop.h <= -epsilon) {
-		throw new RangeError(`The calculated crop dimensions (${newCrop.w}, ${newCrop.h}) exceed those of the source image (${source.w}, ${source.h}) by more than ${epsilon} tolerance`);
+		throw new RangeError(`The calculated crop dimensions (${newCrop.w}, ${newCrop.h}) exceed those of the source image (${source.w}, ${source.h})`);
 	}
 
 	// clamp crop within source image
@@ -63,7 +63,22 @@ export function scaleCrop(source: ImageSize, crop: CropRectangle, scaleFactor: n
 	return newCrop;
 };
 
-export function translateCrop() {
+export function translateCrop(source: ImageSize, crop: CropRectangle, displacement_UV : Point) : CropRectangle {
+	if (!Number.isFinite(displacement_UV.x) || !Number.isFinite(displacement_UV.y)) {
+		throw new RangeError("Both components of displacement_UV must have finite value");
+	}
 
+	// handle possible rounding errors (unlikely to be caught here, but just in case)
+	const epsilon = 16 * Number.EPSILON * Math.max(1, source.w, source.h);
+	if (source.w - crop.w <= -epsilon || source.h - crop.h <= -epsilon) {
+		throw new RangeError(`The current crop dimensions (${crop.w}, ${crop.h}) exceed those of the source image (${source.w}, ${source.h})`);
+	}
+
+	return {
+		x: clamp(crop.x + crop.w * displacement_UV.x, .0, Math.max(.0, source.w - crop.w)),
+		y: clamp(crop.y + crop.h * displacement_UV.y, .0, Math.max(.0, source.h - crop.h)),
+		w: crop.w,
+		h: crop.h
+	};
 }
 

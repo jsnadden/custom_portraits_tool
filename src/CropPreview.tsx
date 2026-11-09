@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { type CropFormatLabel, cropFormats } from "./cropFormats";
-import { type Point, type ImageSize, type CropRectangle, makeInitialCrop, zoomCrop } from "./geometry";
+import { type Point, type ImageSize, type CropRectangle, makeInitialCrop, scaleCrop, translateCrop } from "./geometry";
 
 type UpdateCropCallback = (transform: (previous : CropRectangle) => CropRectangle) => void;
 type UpdateSourceSizeCallback = (size : ImageSize) => void;
@@ -34,15 +34,17 @@ export function CropPreview(props : CropPreviewProps) {
 		}
 
 		function wheelHandler(event : WheelEvent) {
-			if (props.currentCrop === null) {
-				return;
-			}
-
-			if (element === null) {
+			if (props.currentCrop === null || element === null) {
 				return;
 			}
 
 			event.preventDefault();
+
+			// don't allow zooming/scrolling while panning
+			if (dragRef.current !== null) {
+				//console.log(`scrolled wheel while dragRef.current is non-null: pointerID=${dragRef.current.pointerID}`);
+				return;
+			}
 
 			const borderBox = element.getBoundingClientRect();
 
@@ -90,6 +92,14 @@ export function CropPreview(props : CropPreviewProps) {
 				ref={frameRef}
 				style={{ aspectRatio: `${format.dims.w} / ${format.dims.h}` }}
 				onPointerDown={(event) => {
+					if (dragRef.current !== null) {
+						return;
+					}
+
+					if (event.button !== 0) {
+						return;
+					}
+
 					if (props.currentCrop === null) {
 						return;
 					}
@@ -108,15 +118,60 @@ export function CropPreview(props : CropPreviewProps) {
 						return;
 					}
 
+					if (event.pointerId !== dragRef.current.pointerID) {
+						return;
+					}
 
-				}}
-				onPointerCancel={(event) => {
-					dragRef.current = null;
+					const displacement_UV : Point = {
+						x: -(event.clientX - dragRef.current.startingPosition.x) / event.currentTarget.clientWidth,
+						y: -(event.clientY - dragRef.current.startingPosition.y) / event.currentTarget.clientHeight
+					};
+
+					const startingCrop = dragRef.current.startingCrop;
+
+					props.updateCrop(previous => {
+						if (props.sourceSize === null) {
+							return previous;
+						}
+
+						return translateCrop(props.sourceSize, startingCrop, displacement_UV);
+					});	
 				}}
 				onPointerUp={(event) => {
+					if (dragRef.current === null) {
+						return;
+					}
+
+					if (event.pointerId !== dragRef.current.pointerID) {
+						return;
+					}
+
+					if (event.button !== 0) {
+						return;
+					}
+					
+					dragRef.current = null;
+				}}
+				onPointerCancel={(event) => {
+					if (dragRef.current === null) {
+						return;
+					}
+
+					if (event.pointerId !== dragRef.current.pointerID) {
+						return;
+					}
+
 					dragRef.current = null;
 				}}
 				onLostPointerCapture={(event) => {
+					if (dragRef.current === null) {
+						return;
+					}
+
+					if (event.pointerId !== dragRef.current.pointerID) {
+						return;
+					}
+
 					dragRef.current = null;
 				}}
 			>
@@ -152,14 +207,6 @@ export function CropPreview(props : CropPreviewProps) {
 					/>
 				)}
 			</div>
-
-			{/* <p> */}
-			{/* 	{ */}
-			{/* 		dragRef.current !== null */}
-			{/* 			? `dx=${dragRef.current.dx.toFixed(1)}` */}
-			{/* 			: "No drag captured" */}
-			{/* 	} */}
-			{/* </p> */}
 		</section>
 	);
 }
