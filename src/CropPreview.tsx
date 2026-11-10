@@ -5,6 +5,12 @@ import { type Point, type ImageSize, type CropRectangle, makeInitialCrop, scaleC
 type UpdateCropCallback = (transform: (previous : CropRectangle) => CropRectangle) => void;
 type UpdateSourceSizeCallback = (size : ImageSize) => void;
 
+type DragCropRef = {
+	pointerID : number,
+	startingPosition : Point,
+	startingCrop : CropRectangle,
+};
+
 type CropPreviewProps = {
 	label : CropFormatLabel,
 	sourceUrl : string | null,
@@ -12,12 +18,6 @@ type CropPreviewProps = {
 	currentCrop : CropRectangle | null
 	updateCrop : UpdateCropCallback,
 	onImageLoaded : UpdateSourceSizeCallback,
-};
-
-type DragCropRef = {
-	pointerID : number,
-	startingPosition : Point,
-	startingCrop : CropRectangle,
 };
 
 export function CropPreview(props : CropPreviewProps) {

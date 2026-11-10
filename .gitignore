@@ -24,3 +24,22 @@ dist-ssr
 *.sw?
 
 .codex/
+.agents/
+
+# Environment files (may contain credentials)
+.env
+.env.*
+!.env.example
+
+# TypeScript build metadata
+*.tsbuildinfo
+
+# Testing and generated reports
+coverage/
+playwright-report/
+test-results/
+
+# Local credentials, if ever used
+*.pem
+*.p12
+*.pfx

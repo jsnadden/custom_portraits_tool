@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { type Crops, cropFormats, initialiseCrops, type CropFormatLabel } from "./cropFormats.ts";
 import { type CropRectangle, type ImageSize } from "./geometry.ts";
+import { SourcePicker } from "./SourcePicker.tsx";
+import { Exporter } from "./Exporter.tsx";
 import { CropPreview } from "./CropPreview.tsx";
 
 const maxPreviewScale = 0.7;
 const previewGap = 24;
 
 function App() {
+	const [sourceFile, setSourceFile] = useState<File | null>(null);
 	const [sourceUrl, setSourceUrl] = useState<string | null>(null);
 	const [sourceSize, setSourceSize] = useState<ImageSize | null>(null);
 	const [crops, setCrops] = useState<Crops | null>(null);
@@ -24,21 +27,19 @@ function App() {
 		<main>
 			<h1>Owlcat Portrait Tool</h1>
 
-			<label>
-				Choose a source image: 
-				<input
-					type="file"
-					accept="image/*"
-					onChange={(event) => {
-						const file = event.currentTarget.files?.[0];
-						if (file) {
-							setSourceUrl(URL.createObjectURL(file));
-							setSourceSize(null);
-							setCrops(null);
-						}
-					}}
-				/>
-			</label>
+			<SourcePicker
+				onSourceSelected={(file : File) => {
+					setSourceFile(file);	
+					setSourceUrl(URL.createObjectURL(file));
+					setSourceSize(null);
+					setCrops(null);
+				}}
+			/>
+
+			<Exporter
+				sourceFile={sourceFile}
+				crops={crops}
+			/>
 
 			<div
 				className="crop-previews"
