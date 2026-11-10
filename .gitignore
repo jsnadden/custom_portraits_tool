@@ -23,8 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
-.codex/
-.agents/
+.codex
+.agents
 
 # Environment files (may contain credentials)
 .env
