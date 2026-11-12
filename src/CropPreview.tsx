@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import { type CropFormatLabel, cropFormats } from "./cropFormats";
-import { type Point, type ImageSize, type CropRectangle, makeInitialCrop, scaleCrop, translateCrop } from "./geometry";
+import { type CropFormatLabel, cropFormats } from "./cropFormats.ts";
+import { type Point, type ImageSize, type CropRectangle, makeInitialCrop, scaleCrop, translateCrop } from "./geometry.ts";
 
 type UpdateCropCallback = (transform: (previous : CropRectangle) => CropRectangle) => void;
 type UpdateSourceSizeCallback = (size : ImageSize) => void;

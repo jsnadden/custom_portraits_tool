@@ -1,4 +1,4 @@
-import { type ImageSize, type CropRectangle, makeInitialCrop} from "./geometry";
+import { type ImageSize, type CropRectangle, makeInitialCrop} from "./geometry.ts";
 
 export type CropFormatLabel = "full" | "medium" | "small";
 
@@ -9,7 +9,7 @@ export type CropFormat = {
 	dims: ImageSize;
 };
 
-export type CropFormats = { [Name in CropFormatLabel] : CropFormat };
+export type CropFormats = { [Label in CropFormatLabel] : CropFormat };
 
 export const cropFormats = {
 	full: {
@@ -41,7 +41,7 @@ export const cropFormats = {
 	},
 } as const satisfies CropFormats;
 
-export type Crops = { [Name in CropFormatLabel] : CropRectangle };
+export type Crops = { [Label in CropFormatLabel] : CropRectangle };
 
 export function initialiseCrops(source: ImageSize) : Crops {
 	return Object.fromEntries(

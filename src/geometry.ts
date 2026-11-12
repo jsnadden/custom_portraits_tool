@@ -1,4 +1,4 @@
-import { clamp } from "./maths";
+import { clamp } from "./maths.ts";
 
 export type Point = {
 	x: number;
