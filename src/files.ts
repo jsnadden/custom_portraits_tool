@@ -40,6 +40,23 @@ export function formatByteSize(size : number) : string {
 	return `${size.toFixed(2)} ${unitPrefixes[index]}B`;
 }
 
+export function canvasToPng(element : HTMLCanvasElement) : Promise<Blob> {
+	return new Promise<Blob>((resolve, reject) => {
+		element.toBlob(
+			(blob) => {
+				if (blob !== null) {
+					resolve(blob);
+					console.log(`Cropped png file from ${element.id}, of size ${formatByteSize(blob.size)}`);
+					
+				} else {
+					reject(new Error(`Failed to create png file from ${element.id}`));
+				}
+			},
+			"image/png"
+		);
+	});
+}
+
 export async function hashBlobToBytes(blob : Blob) : Promise<Uint8Array> {
 	const blobBytes = await blob.arrayBuffer();
 	const hash = await crypto.subtle.digest("SHA-256", blobBytes);

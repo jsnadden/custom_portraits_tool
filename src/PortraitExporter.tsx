@@ -1,25 +1,9 @@
+import { useState } from "react";
 import { type CropRectangle } from "./geometry.ts";
-import { type Directory, formatByteSize, hashBlobToString, compressToZip } from "./files.ts";
+import { type Directory, canvasToPng, hashBlobToString, compressToZip } from "./files.ts";
 import { type Crops, type CropFormatLabel, type CropFormat, cropFormats } from "./cropFormats.ts";
 
 type ExportFilesRecord = Record<string, Blob | null>;
-
-function canvasToPng(element : HTMLCanvasElement) : Promise<Blob> {
-	return new Promise<Blob>((resolve, reject) => {
-		element.toBlob(
-			(blob) => {
-				if (blob !== null) {
-					resolve(blob);
-					console.log(`Cropped png file from ${element.id}, of size ${formatByteSize(blob.size)}`);
-					
-				} else {
-					reject(new Error(`Failed to create png file from ${element.id}`));
-				}
-			},
-			"image/png"
-		);
-	});
-}
 
 type PortraitExporterProps = {
 	sourceFile : File | null,
@@ -80,14 +64,18 @@ async function exportPortrait(sourceFile : File, characterName : string, crops :
 			};
 
 			const zipBlob = await compressToZip(archiveRoot);
-
+			const downloadUrl = URL.createObjectURL(zipBlob);
+			
 			//initiate download
 			const anchor = document.createElement("a");
-			anchor.download = `${characterName}`;
-			anchor.href = URL.createObjectURL(zipBlob);
+			anchor.download = `${characterName}.zip`;
+			anchor.href = downloadUrl;
 			anchor.click();
 
 			console.log(`Portrait export completed, took ${(performance.now() - exportStartTime).toExponential(2)}ms`);
+			
+			// revoke url after a minute, more than enough time to download
+			setTimeout(() => { URL.revokeObjectURL(downloadUrl) }, 60_000 );
 		} finally {
 			sourceImage.close();
 		}
@@ -97,21 +85,30 @@ async function exportPortrait(sourceFile : File, characterName : string, crops :
 }
 
 export function PortraitExporter(props : PortraitExporterProps) {
-	const disabled : boolean = props.sourceFile === null || props.crops === null;
+	const [isExporting, setIsExporting] = useState(false);
 	
 	return (
 		<section
 			className="portrait-exporter"
 		>				
 			<button
-				disabled={disabled}
+				disabled={props.sourceFile === null || props.crops === null || isExporting}
 				onClick={() => {
+					if (isExporting) {
+						return;
+					}
+
 					if (props.sourceFile !== null && props.crops !== null) {
-						exportPortrait(props.sourceFile, props.characterName, props.crops);
-					}	
+						setIsExporting(true);
+						exportPortrait(
+							props.sourceFile,
+							props.characterName,
+							props.crops
+						).finally(() => { setIsExporting(false); });
+					}
 				}}
 			>
-				Export
+				{ "Export" }
 			</button>
 		</section>
 	);
