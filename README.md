@@ -1,4 +1,4 @@
-# Custom portrait tool for Owlcat CRPGs
+# Triptych - a custom portrait tool for Owlcat CRPGs
 Simple web app to help produce custom portraits files/directories, compatible with
  * Pathfinder: Kingmaker
  * Pathfinder: Wrath of the Righteous

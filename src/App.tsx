@@ -27,7 +27,10 @@ function App() {
 
 	return (
 		<main>
-			<h1>Owlcat Portrait Tool</h1>
+			<header>
+				<h1>Triptych</h1>
+				<p className="subtitle">Custom portrait tool for Owlcat RPGs</p>
+			</header>
 
 			<SourcePicker
 				onSourceSelected={(file : File) => {
