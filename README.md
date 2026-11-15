@@ -1,4 +1,5 @@
-# Custom portrait tool for Owlcat CRPGs [https://jsnadden.github.io/custom_portraits_tool/](https://jsnadden.github.io/custom_portraits_tool/)
+# Custom portrait tool for Owlcat CRPGs
+[https://jsnadden.github.io/custom_portraits_tool/](https://jsnadden.github.io/custom_portraits_tool/)
 Simple web app to help produce custom portraits files/directories, compatible with
  * Pathfinder: Kingmaker
  * Pathfinder: Wrath of the Righteous
