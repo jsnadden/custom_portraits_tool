@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-# Triptych - a custom portrait tool for Owlcat CRPGs
-=======
-# [Custom portrait tool for Owlcat CRPGs](https://jsnadden.github.io/custom_portraits_tool/)
-
->>>>>>> refs/remotes/origin/main
-Simple web app to help produce custom portraits files/directories, compatible with
+# [Triptych](https://jsnadden.github.io/custom_portraits_tool/) - a custom portrait tool for Owlcat RPGs
+Simple web app to help produce/edit custom portraits files, compatible with
  * Pathfinder: Kingmaker
  * Pathfinder: Wrath of the Righteous
  * Warhammer 40,000: Rogue Trader
